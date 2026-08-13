@@ -1,0 +1,81 @@
+---
+/*
+ * EcgTrace — the signature element. A real PQRST heart-rate waveform drawn
+ * across the hero baseline. Calm, breathing-paced: the coral line draws once
+ * over ~6s then holds (a single slow "breath"), respecting reduced-motion —
+ * where it renders as a static, fully-drawn trace.
+ *
+ * The waveform is the thesis made visual: this blog treats your health as a
+ * signal to watch calmly, not a crisis to panic over.
+ *
+ * Reused thin + static as a stratum divider via variant="rule".
+ */
+interface Props {
+  /** "hero" = tall animated baseline trace; "rule" = thin static divider. */
+  variant?: 'hero' | 'rule'
+  label?: string
+}
+const { variant = 'hero', label } = Astro.props
+
+// One clinical cycle: flat → P bump → PR → sharp QRS spike → ST → T wave → flat.
+// Repeated ~4× across the width so it reads as a running monitor, not one beat.
+const beat = 'l14 0 q4 0 6 -5 q2 5 4 5 l6 0 l3 22 l4 -40 l3 26 l4 0 q4 0 6 -4 q2 4 4 4 l14 0'
+const path = `M0 40 ${beat} ${beat} ${beat} ${beat} l14 0`
+---
+
+<figure class={`ecg ecg-${variant}`} aria-hidden={label ? undefined : 'true'} role={label ? 'img' : undefined} aria-label={label}>
+  <svg class="ecg-svg" viewBox="0 0 420 80" preserveAspectRatio="none" focusable="false">
+    <path class="ecg-baseline" d="M0 40 H420" />
+    <path class="ecg-line" d={path} />
+  </svg>
+</figure>
+
+<style>
+  .ecg {
+    margin: 0;
+    width: 100%;
+    line-height: 0;
+  }
+  .ecg-hero {
+    height: clamp(48px, 9vw, 96px);
+  }
+  .ecg-rule {
+    height: 22px;
+    opacity: 0.5;
+  }
+  .ecg-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+  .ecg-baseline {
+    fill: none;
+    stroke: var(--rule);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .ecg-line {
+    fill: none;
+    stroke: var(--pulse);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1400;
+    stroke-dashoffset: 0;
+  }
+  .ecg-rule .ecg-line {
+    stroke-width: 1.5;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .ecg-hero .ecg-line {
+      stroke-dashoffset: 1400;
+      animation: ecg-draw var(--dur-breath, 6000ms) var(--ease-in-out) forwards;
+    }
+    @keyframes ecg-draw {
+      to { stroke-dashoffset: 0; }
+    }
+  }
+</style>

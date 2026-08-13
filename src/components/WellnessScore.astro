@@ -1,0 +1,194 @@
+---
+/*
+ * WellnessScore — the health blog's signature module.
+ *
+ * A clinical instrument readout styled like a patient-monitor panel.
+ * Shows three "biomarker" slots drawn from the blog's content stats:
+ *   CONSISTENCY  — posts this month (streak proxy)
+ *   BREADTH      — unique topics covered
+ *   DEPTH        — avg reading time across all posts
+ *
+ * Each slot renders as a mono numeric readout with a label and unit,
+ * separated by a hairline vertical rule. Below: a miniature ECG spark.
+ * The component is purely decorative-informational — no JS, no fetch,
+ * all values computed at build time from the content collection.
+ *
+ * Used on the homepage below the masthead, before the lead story.
+ */
+interface Props {
+  posts: number
+  postsThisMonth: number
+  topicsCount: number
+  avgReadMins: number
+}
+
+const { posts, postsThisMonth, topicsCount, avgReadMins } = Astro.props
+
+const vitals = [
+  { label: 'Consistency', value: postsThisMonth, unit: 'this mo', icon: '◈' },
+  { label: 'Breadth', value: topicsCount, unit: 'topics', icon: '◇' },
+  { label: 'Depth', value: avgReadMins, unit: 'min avg', icon: '◉' },
+]
+---
+
+<div class="ws-panel" role="region" aria-label="Blog vitals readout">
+  <p class="ws-label mono" aria-hidden="true">Live readout</p>
+  <div class="ws-grid">
+    {vitals.map((v, i) => (
+      <div class="ws-slot" key={i}>
+        <span class="ws-icon" aria-hidden="true">{v.icon}</span>
+        <span class="ws-val">{v.value}</span>
+        <span class="ws-unit mono">{v.unit}</span>
+        <span class="ws-name mono">{v.label}</span>
+      </div>
+    ))}
+  </div>
+  <div class="ws-spark" aria-hidden="true">
+    <!-- miniature clinical spark: flat → blip → flat -->
+    <svg class="ws-svg" viewBox="0 0 200 20" preserveAspectRatio="none" focusable="false">
+      <path class="ws-spark-line"
+        d="M0 10 L50 10 L54 10 L56 3 L59 17 L61 10 L70 10 L74 10 L76 4 L79 16 L81 10 L90 10 L94 10 L96 3 L99 17 L101 10 L110 10 L114 10 L116 4 L119 16 L121 10 L200 10"
+      />
+    </svg>
+  </div>
+  <p class="ws-total mono"><span class="ws-total-n">{posts}</span> entries in the log</p>
+</div>
+
+<style>
+  .ws-panel {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--pulse);
+    padding: 1rem 1.25rem 0.875rem;
+    background: color-mix(in oklab, var(--paper-2) 70%, var(--calm-soft));
+    margin-block: 1.5rem;
+  }
+
+  .ws-label {
+    margin: 0 0 0.75rem;
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .ws-label::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--pulse);
+    animation: ws-blip 2s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ws-label::before { animation: none; }
+  }
+
+  @keyframes ws-blip {
+    0%, 80%, 100% { opacity: 1; transform: scale(1); }
+    88% { opacity: 0.3; transform: scale(0.6); }
+  }
+
+  .ws-grid {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+  }
+
+  .ws-slot {
+    flex: 1 1 0;
+    display: grid;
+    grid-template-rows: auto auto auto;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.5rem;
+    row-gap: 0;
+    padding: 0.75rem 1rem 0.625rem;
+    border-right: 1px solid var(--rule);
+    align-items: start;
+  }
+  .ws-slot:last-child { border-right: 0; }
+
+  .ws-icon {
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+    font-size: 11px;
+    color: var(--accent);
+    line-height: 1;
+    padding-top: 0.3rem;
+  }
+
+  .ws-val {
+    grid-row: 1 / 2;
+    grid-column: 2 / 3;
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .ws-unit {
+    grid-row: 2 / 3;
+    grid-column: 2 / 3;
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 0.1rem;
+  }
+
+  .ws-name {
+    grid-row: 3 / 4;
+    grid-column: 1 / 3;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-top: 0.35rem;
+    border-top: 1px solid var(--rule);
+    padding-top: 0.3rem;
+  }
+
+  /* spark strip */
+  .ws-spark {
+    margin-top: 0.625rem;
+    height: 14px;
+    opacity: 0.6;
+  }
+  .ws-svg { width: 100%; height: 100%; display: block; }
+  .ws-spark-line {
+    fill: none;
+    stroke: var(--pulse);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .ws-total {
+    margin: 0.5rem 0 0;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    text-align: right;
+  }
+  .ws-total-n {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  @media (max-width: 480px) {
+    .ws-slot { padding: 0.625rem 0.625rem 0.5rem; }
+    .ws-val { font-size: 1.375rem; }
+    .ws-icon { display: none; }
+    .ws-unit { grid-column: 1 / 3; }
+    .ws-name { grid-column: 1 / 3; }
+  }
+</style>

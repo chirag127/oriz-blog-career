@@ -1,0 +1,190 @@
+---
+/*
+ * StatusLine — the whole site header, compressed to one thin monitor strip.
+ *
+ *   ┌───────────────────────────────────────────────────────────────────┐
+ *   │ �166 Vitals   ● MONITORING · <live clock> · N entries    ⌘K  fam src │
+ *   └───────────────────────────────────────────────────────────────────┘
+ *
+ * Replaces the old double-header (family bar + 64px magazine masthead with a
+ * LATEST/GUIDES/TOPICS/ABOUT top-nav). This site is a right-rail instrument:
+ * navigation lives in the VitalsRail, so the header carries no primary nav —
+ * only identity, a live monitor readout, and the ⌘K search trigger.
+ *
+ * The center readout is the signature moment up here: a pulsing coral status
+ * dot + a ticking mono clock, so the top of the page reads like a bedside
+ * monitor's status line, not a magazine nameplate.
+ */
+import HeaderControls from '~/components/HeaderControls.tsx'
+import MultiSearch from '~/components/MultiSearch.tsx'
+import StatusBanner from '~/components/StatusBanner.astro'
+
+interface Props {
+  /** Total published entries — shown as the "logged" count. */
+  entries?: number
+}
+const { entries } = Astro.props
+---
+
+<StatusBanner />
+<header class="statusline" transition:persist="statusline">
+  <div class="sl-inner">
+    <a class="sl-brand" href="/" aria-label="Vitals — home">
+      <svg class="sl-pulse" viewBox="0 0 40 24" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid meet">
+        <path d="M1 12 H11 L14 12 L16 4 L19 20 L22 8 L24 12 H39" />
+      </svg>
+      <span class="sl-name">Vitals</span>
+    </a>
+
+    <div class="sl-readout" role="status" aria-label="Monitor status">
+      <span class="sl-dot" aria-hidden="true"></span>
+      <span class="sl-state">Monitoring</span>
+      <span class="sl-sep" aria-hidden="true">·</span>
+      <time class="sl-clock" id="sl-clock" datetime="">--:--:--</time>
+      {typeof entries === 'number' && (
+        <>
+          <span class="sl-sep" aria-hidden="true">·</span>
+          <span class="sl-entries"><span class="sl-count">{entries}</span> logged</span>
+        </>
+      )}
+    </div>
+
+    <div class="sl-controls">
+      <div class="sl-family" aria-hidden="false">
+        <a class="sl-fam-link" href="https://oriz.in">Family</a>
+        <a class="sl-fam-link" href="https://github.com/chirag127/oriz-blog-health">Source</a>
+      </div>
+      <div class="sl-multisearch"><MultiSearch client:idle /></div>
+      <div class="sl-controls-mount"><HeaderControls client:idle /></div>
+    </div>
+  </div>
+</header>
+
+<script>
+  // Live monitor clock — a ticking readout, not decoration. Reduced-motion
+  // safe: it's a value update, not an animation.
+  const el = document.getElementById('sl-clock')
+  if (el) {
+    const tick = () => {
+      const d = new Date()
+      const hh = String(d.getHours()).padStart(2, '0')
+      const mm = String(d.getMinutes()).padStart(2, '0')
+      const ss = String(d.getSeconds()).padStart(2, '0')
+      el.textContent = `${hh}:${mm}:${ss}`
+      el.setAttribute('datetime', d.toISOString())
+    }
+    tick()
+    setInterval(tick, 1000)
+  }
+</script>
+
+<style>
+  .statusline {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in oklab, var(--paper) 88%, transparent);
+    backdrop-filter: saturate(180%) blur(10px);
+    -webkit-backdrop-filter: saturate(180%) blur(10px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .sl-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    height: 40px;
+    max-width: 1320px;
+    margin-inline: auto;
+    padding-inline: clamp(0.875rem, 3vw, 1.5rem);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .sl-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex: 0 0 auto;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .sl-pulse { width: 22px; height: 13px; overflow: visible; flex: 0 0 auto; }
+  .sl-pulse path {
+    fill: none;
+    stroke: var(--pulse);
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .sl-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+
+  /* Center monitor readout */
+  .sl-readout {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ink-mute);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 10.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    margin-inline: auto;
+  }
+  .sl-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--pulse);
+    flex: 0 0 auto;
+  }
+  .sl-state { color: var(--accent); font-weight: 500; }
+  .sl-sep { color: var(--rule-strong, var(--rule)); }
+  .sl-clock { color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+  .sl-count { color: var(--ink); }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .sl-dot { animation: sl-blip 2.4s var(--ease-in-out, ease) infinite; }
+    @keyframes sl-blip {
+      0%, 88%, 100% { opacity: 1; transform: scale(1); }
+      92% { opacity: 0.35; transform: scale(0.7); }
+    }
+  }
+
+  .sl-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 0 0 auto;
+    margin-left: 0;
+  }
+  .sl-family { display: none; gap: 0.75rem; }
+  .sl-fam-link {
+    color: var(--ink-mute);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 10.5px;
+    border-bottom: 1px solid transparent;
+  }
+  .sl-fam-link:hover,
+  .sl-fam-link:focus-visible { color: var(--accent); border-bottom-color: var(--accent); }
+  .sl-multisearch,
+  .sl-controls-mount { display: inline-flex; align-items: center; }
+
+  /* On narrow screens the readout collapses first (identity + search win). */
+  @media (max-width: 719px) {
+    .sl-readout { display: none; }
+    .sl-brand { margin-right: auto; }
+  }
+  @media (min-width: 860px) {
+    .sl-family { display: inline-flex; }
+  }
+</style>

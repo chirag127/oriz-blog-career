@@ -1,0 +1,113 @@
+---
+/**
+ * /now — current focus areas, per the nownownow.com convention.
+ *
+ * This page is a recruiter-facing snapshot of what I'm working on right
+ * now. Update the "Last updated" line + content whenever priorities
+ * shift (target cadence: monthly).
+ *
+ * Style mirrors `/about` — single-column long-form prose, no sidebar.
+ */
+import BaseLayout from '~/layouts/BaseLayout.astro'
+
+const lastUpdated = '2026-06-20'
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name: 'Now — Chirag Singhal',
+  url: 'https://health-blog.oriz.in/now/',
+  description: 'What Chirag Singhal is currently focused on for the Vitals health blog.',
+  dateModified: lastUpdated,
+}
+---
+
+<BaseLayout
+  title="Now — Vitals"
+  description="What Vitals is focused on right now — the topics and habits currently being written up."
+  jsonLd={jsonLd}
+  hideSidebar={true}
+>
+  <header class="page-head">
+    <p class="eyebrow"><a href="/">Vitals</a> / Now</p>
+    <h1>Now</h1>
+    <p class="updated">Last updated <time datetime={lastUpdated}>{lastUpdated}</time></p>
+  </header>
+
+  <article class="prose">
+    <p class="lede">
+      A snapshot of what Vitals is focused on right now — a
+      <a href="https://nownownow.com/about" rel="noopener noreferrer">/now page</a>
+      in the Derek Sivers tradition. Updated roughly monthly.
+    </p>
+
+    <h2>Writing</h2>
+    <p>
+      Building out the foundation set: sleep, beginner strength training, and
+      everyday stress. Each piece starts from the research, gets tested against
+      a few real weeks, and only then gets written up — plainly, with the
+      uncertainty left in.
+    </p>
+
+    <h2>Reading</h2>
+    <p>
+      Working through the evidence base on circadian rhythm and light exposure,
+      resistance-training dose-response, and the behavioural side of stress
+      (CBT-I, stimulus control). The goal is to separate what the studies
+      actually support from what the internet repeats.
+    </p>
+
+    <h2>Testing</h2>
+    <p>
+      Running the habits before recommending them — a fixed wake time, a
+      twice-weekly full-body routine, and a long-exhale breathing drill — and
+      keeping notes on what sticks in an ordinary busy week.
+    </p>
+
+    <h2>Where to find me</h2>
+    <p>
+      <a href="/about/">About</a> ·
+      <a href="https://github.com/chirag127">GitHub</a> ·
+      <a href="/rss.xml">RSS</a> ·
+      <a href="/contact/">Contact</a>
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .page-head { margin-bottom: 1.5rem; }
+  .eyebrow {
+    color: var(--color-fg-muted);
+    font-size: 0.875rem;
+    margin: 0 0 0.5rem;
+  }
+  .eyebrow a { color: inherit; text-decoration: none; }
+  .eyebrow a:hover { color: var(--color-fg); }
+  h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+    line-height: 1.15;
+  }
+  .updated {
+    color: var(--color-fg-soft);
+    font-size: 0.875rem;
+    margin: 0.5rem 0 0;
+  }
+  .prose { max-width: 60ch; }
+  .prose .lede {
+    color: var(--color-fg-muted);
+    font-size: 1.0625rem;
+    margin: 1.5rem 0 0;
+  }
+  .prose h2 {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 2rem 0 0.5rem;
+  }
+  .prose p { margin: 0.75rem 0; line-height: 1.7; }
+  .prose a { color: var(--color-accent); }
+</style>

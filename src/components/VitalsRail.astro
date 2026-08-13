@@ -1,0 +1,232 @@
+---
+/*
+ * VitalsRail — the fixed right instrument rail. This is the site's PRIMARY
+ * navigation surface (the old top-nav is gone). Content sits to its left.
+ *
+ * Panels, top to bottom:
+ *   1. NAV      — Latest / Guides / Topics / About / Now, as a monitor
+ *                 channel list with aria-current highlighting.
+ *   2. VITALS   — a small clinical readout: entries logged, active guides,
+ *                 topics tracked. Numbers set in mono, breathing-calm.
+ *   3. ECG      — a thin static heart-rate trace (the signature motif),
+ *                 anchoring the rail like a monitor's trend strip.
+ *   4. FEED     — RSS/Atom/JSON quick links.
+ *
+ * Desktop (≥1024px): sticky right column. Mobile/tablet: rail drops BELOW the
+ * content as a horizontal instrument footer of the same panels.
+ */
+import EcgTrace from '~/components/EcgTrace.astro'
+
+interface Vital {
+  label: string
+  value: string | number
+  unit?: string
+}
+interface Props {
+  entries?: number
+  guides?: number
+  topics?: number
+  vitals?: Vital[]
+}
+
+const {
+  entries,
+  guides,
+  topics,
+  vitals,
+} = Astro.props
+
+const path = Astro.url.pathname
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href)
+
+const nav = [
+  { href: '/', label: 'Feed', channel: 'CH1' },
+  { href: '/series/', label: 'Programs', channel: 'CH2' },
+  { href: '/tags/', label: 'Markers', channel: 'CH3' },
+  { href: '/about/', label: 'Profile', channel: 'CH4' },
+  { href: '/now/', label: 'Status', channel: 'CH5' },
+]
+
+// Default site-wide vitals when a page doesn't pass its own.
+const defaultVitals: Vital[] =
+  vitals ??
+  [
+    entries != null && { label: 'Entries logged', value: entries },
+    guides != null && { label: 'Active guides', value: guides },
+    topics != null && { label: 'Topics tracked', value: topics },
+  ].filter(Boolean) as Vital[]
+---
+
+<aside class="vrail" aria-label="Site instrument rail">
+  <nav class="vrail-nav" aria-label="Sections">
+    <p class="vrail-h">Channels</p>
+    <ul>
+      {nav.map((n) => (
+        <li>
+          <a
+            href={n.href}
+            class:list={['vrail-nav-link', isActive(n.href) && 'is-active']}
+            aria-current={isActive(n.href) ? 'page' : undefined}
+          >
+            <span class="vrail-chan" aria-hidden="true">{n.channel}</span>
+            <span class="vrail-nav-label">{n.label}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+
+  {defaultVitals.length > 0 && (
+    <div class="vrail-vitals">
+      <p class="vrail-h">Vitals</p>
+      <dl>
+        {defaultVitals.map((v) => (
+          <div class="vrail-vital">
+            <dt>{v.label}</dt>
+            <dd>
+              <span class="vrail-val">{v.value}</span>
+              {v.unit && <span class="vrail-unit">{v.unit}</span>}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  )}
+
+  <div class="vrail-ecg" aria-hidden="true">
+    <EcgTrace variant="rule" />
+  </div>
+
+  <div class="vrail-feed">
+    <p class="vrail-h">Feed</p>
+    <ul class="vrail-feed-list">
+      <li><a href="/rss.xml">RSS</a></li>
+      <li><a href="/atom.xml">Atom</a></li>
+      <li><a href="/feed.json">JSON</a></li>
+      <li><a href="/archive/">Archive</a></li>
+    </ul>
+  </div>
+</aside>
+
+<style>
+  .vrail {
+    flex: 0 0 260px;
+    width: 260px;
+    align-self: flex-start;
+    position: sticky;
+    top: 40px; /* under the status line */
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 1.75rem 1.5rem 2rem;
+    border-left: 1px solid var(--rule);
+    background: color-mix(in oklab, var(--paper-2) 60%, var(--paper));
+    font-family: var(--font-mono);
+  }
+
+  .vrail-h {
+    margin: 0 0 0.75rem;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ink-mute);
+    font-weight: 500;
+  }
+
+  /* Channels — the navigation */
+  .vrail-nav ul { list-style: none; margin: 0 0 1.75rem; padding: 0; display: flex; flex-direction: column; gap: 0.125rem; }
+  .vrail-nav-link {
+    display: flex;
+    align-items: baseline;
+    gap: 0.625rem;
+    padding: 0.4rem 0.5rem;
+    margin-inline: -0.5rem;
+    color: var(--ink);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: border-color var(--dur-fast, 160ms) ease, color var(--dur-fast, 160ms) ease;
+  }
+  .vrail-chan {
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    color: var(--ink-mute);
+    flex: 0 0 auto;
+  }
+  .vrail-nav-label {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .vrail-nav-link:hover { color: var(--accent); border-left-color: var(--accent); }
+  .vrail-nav-link:hover .vrail-chan { color: var(--accent); }
+  .vrail-nav-link.is-active {
+    color: var(--accent);
+    border-left-color: var(--pulse);
+    background: color-mix(in oklab, var(--accent) 8%, transparent);
+  }
+  .vrail-nav-link.is-active .vrail-chan { color: var(--pulse); }
+  .vrail-nav-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Vitals readout */
+  .vrail-vitals dl { margin: 0 0 1.5rem; display: flex; flex-direction: column; gap: 0.875rem; }
+  .vrail-vital { display: flex; flex-direction: column; gap: 0.15rem; }
+  .vrail-vital dt {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-mute);
+  }
+  .vrail-vital dd { margin: 0; display: flex; align-items: baseline; gap: 0.3rem; }
+  .vrail-val {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .vrail-unit { font-size: 11px; color: var(--ink-mute); letter-spacing: 0.04em; }
+
+  /* ECG motif */
+  .vrail-ecg { margin: 0 0 1.5rem; }
+
+  /* Feed */
+  .vrail-feed-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; }
+  .vrail-feed-list a {
+    color: var(--ink-mute);
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid transparent;
+  }
+  .vrail-feed-list a:hover,
+  .vrail-feed-list a:focus-visible { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Mobile / tablet: rail becomes a horizontal instrument strip under content */
+  @media (max-width: 1023px) {
+    .vrail {
+      flex-basis: auto;
+      width: auto;
+      position: static;
+      max-height: none;
+      border-left: 0;
+      border-top: 1px solid var(--rule);
+      margin-top: 2rem;
+      padding-inline: clamp(1.25rem, 4vw, 2rem);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1.5rem 2rem;
+    }
+    .vrail-nav ul { margin-bottom: 0; }
+    .vrail-nav-link { border-left: 0; border-bottom: 2px solid transparent; margin-inline: 0; padding-inline: 0; }
+    .vrail-nav-link.is-active { border-left: 0; border-bottom-color: var(--pulse); }
+    .vrail-vitals dl { margin-bottom: 0; }
+    .vrail-ecg { grid-column: 1 / -1; margin: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vrail-nav-link { transition: none; }
+  }
+</style>

@@ -1,0 +1,244 @@
+/*
+ * tokens.css — oriz-blog-health "Vitals" identity (2026-08-12).
+ *
+ * Health/fitness blog styled as a calm physiological instrument. LIGHT-FIRST
+ * (calm reads best on warm paper): warm-cool off-white surface, deep slate-teal
+ * ink, a CALM TEAL accent (recovery / oxygenation) and ONE coral PULSE signal
+ * (heart-rate / exertion) used sparingly. Not wellness-green, not clinical blue,
+ * not the amber newspaper of sister oriz-blog.
+ *
+ * Every --color-* alias is preserved so chrome/legal/Footer components (which
+ * consume the shell token names) compile unchanged. Theme modes:
+ *   :root                               → light (default)
+ *   @media (prefers-color-scheme:dark)  → dark, UNLESS [data-theme="light"]
+ *   [data-theme="dark"]                 → dark, always (overrides system)
+ *   [data-theme="sepia"]                → warm recovery paper
+ *   [data-theme="hc"]                   → pure black/white high contrast
+ */
+:root {
+  color-scheme: light;
+
+  /* ── light "resting" palette ───────────────────────────────────────────
+     Calm teal = the page accent (links, active, primary). Coral pulse is the
+     ONE warm signal — heart-rate trace + live/active dots only, never body. */
+  --calm: #0e9aa6; /* calm teal — recovery / oxygenation; primary accent */
+  --calm-soft: #e2f1f1; /* pale teal wash — hover, chips */
+  --pulse: #e5605e; /* coral pulse — heart-rate signal, sparse */
+  --brand: var(--calm);
+  --brand-soft: var(--calm-soft);
+  --success: #2f9e6f;
+  --danger-color: #e5605e;
+
+  --paper: #f7f9f9; /* warm-cool off-white (page bg) */
+  --paper-2: #ffffff; /* raised panel / surface */
+  --surface: var(--paper-2);
+  --ink: #182a2c; /* deep slate-teal text */
+  --ink-mute: #5c6f70; /* secondary */
+  --rule: #dbe4e3; /* hairlines */
+  --rule-strong: #b9c8c7; /* heavier baseline rule */
+
+  /* canonical accent — everything routes through --accent. --cobalt kept ONLY
+     as a back-compat alias → --accent. */
+  --accent: var(--calm);
+  --accent-soft: var(--calm-soft);
+  --cobalt: var(--accent);
+  --brand-tint: var(--calm-soft);
+  --sage: var(--success);
+  --vermilion: var(--pulse);
+  --highlighter: var(--calm);
+
+  /* content-vertical marker colours — Dev · Finance · Culture · Health ·
+     Personal. Health is the house vertical, tuned to the calm-teal family. */
+  --v-dev: #3b7ea1;
+  --v-finance: #2f9e6f;
+  --v-culture: #b06fb0;
+  --v-health: #0e9aa6;
+  --v-personal: #5c6f70;
+
+  /* semantic passthroughs */
+  --color-bg: var(--paper);
+  --color-fg: var(--ink);
+  --color-accent: var(--calm);
+  --color-accent-fg: #ffffff;
+  --color-sage: var(--success);
+  --color-muted: var(--ink-mute);
+  --color-border: var(--rule);
+  --color-bg-soft: var(--paper-2);
+  --color-bg-muted: var(--paper-2);
+  --color-prose: var(--ink);
+  --color-fg-muted: var(--ink-mute);
+  --color-fg-soft: var(--ink-mute);
+
+  /* color alias layer (chrome components read these) */
+  --color-brand-indigo: var(--calm); /* name kept for compatibility */
+  --color-brand-indigo-soft: var(--calm-soft);
+  --color-brand-success: var(--success);
+  --color-brand-danger: var(--danger-color);
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f7f9f9;
+  --color-neutral-100: #eef3f2;
+  --color-neutral-200: #dbe4e3;
+  --color-neutral-300: #b9c8c7;
+  --color-neutral-500: #5c6f70;
+  --color-neutral-700: #33484a;
+  --color-neutral-900: #182a2c;
+  --color-neutral-1000: #0c1416;
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-mute: var(--ink-mute);
+  --color-rule: var(--rule);
+
+  /* ── type ───────────────────────────────────────────────────────────
+     Font families declared ONCE in global.css @theme (Tailwind emits the
+     --font-* custom properties from there). Not duplicated here. */
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 48px;
+
+  /* spacing — 8 steps */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* motion — calm, breathing-paced */
+  --dur-fast: 160ms;
+  --dur-base: 260ms;
+  --dur-slow: 440ms;
+  --dur-breath: 6000ms; /* ECG loop — one calm cycle */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* breakpoints */
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1440px;
+
+  /* radii + containers — soft, not pill-round */
+  --radius-card: 10px;
+  --radius-button: 8px;
+  --container-page: 1100px;
+}
+
+/* ── DARK — system preference, unless user forced light ─────────────────
+   Deep slate-teal night. Accent + pulse brightened for dark contrast. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --calm: #3cc5cf;
+    --calm-soft: #123033;
+    --pulse: #f0736f;
+    --paper: #0c1416;
+    --paper-2: #142023;
+    --ink: #e8f0ef;
+    --ink-mute: #90a5a4;
+    --rule: #233435;
+    --rule-strong: #35494a;
+    --v-dev: #6fb5d6;
+    --v-finance: #45c48f;
+    --v-culture: #d18fd1;
+    --v-health: #3cc5cf;
+    --v-personal: #90a5a4;
+    --color-accent-fg: #0c1416;
+    --color-neutral-0: #142023;
+    --color-neutral-50: #0c1416;
+    --color-neutral-100: #16262a;
+    --color-neutral-200: #233435;
+    --color-neutral-300: #35494a;
+    --color-neutral-500: #90a5a4;
+    --color-neutral-700: #c3d2d1;
+    --color-neutral-900: #e8f0ef;
+  }
+}
+
+/* ── DARK — explicit user override, wins over system ──────────────────── */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --calm: #3cc5cf;
+  --calm-soft: #123033;
+  --pulse: #f0736f;
+  --paper: #0c1416;
+  --paper-2: #142023;
+  --ink: #e8f0ef;
+  --ink-mute: #90a5a4;
+  --rule: #233435;
+  --rule-strong: #35494a;
+  --v-dev: #6fb5d6;
+  --v-finance: #45c48f;
+  --v-culture: #d18fd1;
+  --v-health: #3cc5cf;
+  --v-personal: #90a5a4;
+  --color-accent-fg: #0c1416;
+  --color-neutral-0: #142023;
+  --color-neutral-50: #0c1416;
+  --color-neutral-100: #16262a;
+  --color-neutral-200: #233435;
+  --color-neutral-300: #35494a;
+  --color-neutral-500: #90a5a4;
+  --color-neutral-700: #c3d2d1;
+  --color-neutral-900: #e8f0ef;
+}
+
+/* ── SEPIA — warm recovery paper ────────────────────────────────────────
+   Dawn-recovery variant: warm sand paper, deep teal-ink stays, terracotta
+   accent for a softer "morning" reading mode. */
+:root[data-theme='sepia'] {
+  color-scheme: light;
+  --calm: #b25a3c;
+  --calm-soft: #f2e2d6;
+  --pulse: #c1503a;
+  --paper: #f4ece0;
+  --paper-2: #fbf5ec;
+  --ink: #2f2a24;
+  --ink-mute: #776d5e;
+  --rule: #e2d5c3;
+  --rule-strong: #cbbba3;
+  --color-accent-fg: #fbf5ec;
+  --color-fg-soft: color-mix(in oklab, var(--ink) 55%, var(--paper));
+  --color-neutral-0: #fbf5ec;
+  --color-neutral-50: #f4ece0;
+  --color-neutral-100: #ede2d2;
+  --color-neutral-200: #e2d5c3;
+  --color-neutral-500: #776d5e;
+  --color-neutral-700: #4f463a;
+  --color-neutral-900: #2f2a24;
+}
+
+/* ── HIGH-CONTRAST — pure black/white, hard borders ─────────────────────
+   Accent = a dark teal that clears WCAG AAA on white. */
+:root[data-theme='hc'] {
+  color-scheme: light;
+  --calm: #036670;
+  --calm-soft: #d6efef;
+  --pulse: #b52f2c;
+  --paper: #ffffff;
+  --paper-2: #ffffff;
+  --ink: #000000;
+  --ink-mute: #23302f;
+  --rule: #000000;
+  --rule-strong: #000000;
+  --color-accent-fg: #ffffff;
+  --color-fg-soft: #23302f;
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #ffffff;
+  --color-neutral-200: #000000;
+  --color-neutral-300: #000000;
+  --color-neutral-500: #23302f;
+  --color-neutral-700: #000000;
+  --color-neutral-900: #000000;
+}

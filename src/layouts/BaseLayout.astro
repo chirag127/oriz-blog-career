@@ -1,0 +1,185 @@
+---
+/*
+ * BaseLayout — single page shell for every oriz-blog-health route.
+ *
+ * ARCHETYPE: right-rail instrument. The header is one thin monitor status
+ * line (StatusLine); primary navigation lives in a fixed right instrument
+ * rail (VitalsRail) with content to its LEFT. No top-nav magazine chrome.
+ * Pages that manage their own right rail (e.g. article TOC) pass
+ * `hideSidebar` to suppress the global VitalsRail.
+ */
+import '~/styles/global.css'
+import '~/styles/oriz-ui-overrides.css'
+import 'katex/dist/katex.min.css'
+import '~/styles/tokens.css'
+import { ClientRouter } from 'astro:transitions'
+import ConsentBanner from '~/components/chrome/ConsentBanner.astro'
+import FeedDiscovery from '~/components/FeedDiscovery.astro'
+import Footer from '~/components/Footer.astro'
+import StatusLine from '~/components/StatusLine.astro'
+import VitalsRail from '~/components/VitalsRail.astro'
+import {
+  getCategoriesWithCounts,
+  getPublishedPosts,
+  getSeriesWithCounts,
+} from '~/lib/blog'
+
+interface Props {
+  title?: string
+  description?: string
+  canonical?: string
+  noindex?: boolean
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[]
+  image?: string
+  type?: 'website' | 'article'
+  pubDate?: Date
+  updatedDate?: Date
+  hideSidebar?: boolean
+}
+
+const {
+  title = 'Vitals — health, measured',
+  description = 'A calm, evidence-minded health blog on sleep, strength training, stress, and everyday wellbeing — by Chirag Singhal. Plain, specific, no hype.',
+  canonical = `https://health-blog.oriz.in${Astro.url.pathname}`,
+  noindex = false,
+  jsonLd,
+  image,
+  type = 'website',
+  pubDate,
+  updatedDate,
+  hideSidebar = false,
+} = Astro.props
+
+const adsenseClient = import.meta.env.PUBLIC_ADSENSE_CLIENT
+const beaconToken = import.meta.env.PUBLIC_CF_BEACON_TOKEN
+const ga4Id = import.meta.env.PUBLIC_GA4_ID
+const ogImage = image ? new URL(image, 'https://health-blog.oriz.in').toString() : undefined
+
+// Site-wide vitals for the instrument rail. Cheap: same collection queries the
+// pages already run, resolved once here for the shared shell.
+const railPosts = hideSidebar ? [] : await getPublishedPosts()
+const railSeries = hideSidebar ? [] : await getSeriesWithCounts()
+const railCats = hideSidebar ? [] : await getCategoriesWithCounts()
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content="Vitals" />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    {type === 'article' && pubDate && (
+      <meta property="article:published_time" content={pubDate.toISOString()} />
+    )}
+    {type === 'article' && updatedDate && (
+      <meta property="article:modified_time" content={updatedDate.toISOString()} />
+    )}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@chirag127" />
+
+    <!-- Apply the saved reading theme before paint so the editorial surface never flashes. -->
+    <script is:inline>
+      {`(() => {
+        try {
+          const theme = localStorage.getItem('oriz:theme')
+          if (theme && theme !== 'auto' && ['light', 'dark', 'sepia', 'hc'].includes(theme)) {
+            document.documentElement.dataset.theme = theme
+          }
+        } catch (_) {}
+      })()`}
+    </script>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#f7f9f9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0c1416" media="(prefers-color-scheme: dark)" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <FeedDiscovery />
+
+    <ClientRouter />
+
+    {jsonLd && (
+      <script
+        is:inline
+        type="application/ld+json"
+        set:html={JSON.stringify(Array.isArray(jsonLd) ? jsonLd : [jsonLd])}
+      />
+    )}
+
+    {adsenseClient && (
+      <script
+        is:inline
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClient}`}
+        crossorigin="anonymous"
+      />
+    )}
+
+    {beaconToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={`{"token": "${beaconToken}"}`}
+      />
+    )}
+
+    {ga4Id && (
+      <>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${ga4Id}`} />
+        <script is:inline define:vars={{ ga4Id }}>
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config',ga4Id);`}
+        </script>
+      </>
+    )}
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <StatusLine entries={hideSidebar ? undefined : railPosts.length} />
+    <div class="layout-body">
+      <main id="main"><slot /></main>
+      {!hideSidebar && (
+        <VitalsRail
+          entries={railPosts.length}
+          guides={railSeries.length}
+          topics={railCats.length}
+        />
+      )}
+    </div>
+    <Footer />
+    <ConsentBanner />
+
+    <script>
+      if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {})
+        })
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  .layout-body {
+    display: flex;
+    gap: 0;
+    align-items: flex-start;
+    max-width: 1320px;
+    margin-inline: auto;
+  }
+  .layout-body > main { flex: 1 1 auto; min-width: 0; }
+  @media (max-width: 1023px) {
+    .layout-body { display: block; }
+  }
+</style>
